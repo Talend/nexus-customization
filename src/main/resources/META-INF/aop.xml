@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aspectj>
+
+  <aspects>
+    <aspect name="org.talend.nexus.customizations.JettyThreadPoolMonitoringAspect"/>
+    <aspect name="org.talend.nexus.customizations.DefaultIndexerManagerAspect"/>
+    <aspect name="org.talend.nexus.customizations.TargetMatchingOptimizationAspect"/>
+    <aspect name="org.talend.nexus.customizations.M2GavCalculatorAspect"/>
+  </aspects>
+
+  <weaver options="-showWeaveInfo">
+    <!-- directly instrumented -->
+    <include within="com.yammer.metrics.jetty.InstrumentedQueuedThreadPool"/>
+    <include within="org.sonatype.nexus.index.DefaultIndexerManager"/>
+    <include within="org.sonatype.nexus.proxy.maven.gav.M2GavCalculator"/>
+
+    <!-- org.sonatype.nexus.proxy.targets.Target related -->
+    <include within="org.sonatype.nexus.proxy.targets.DefaultTargetRegistry" />
+    <include within="org.sonatype.nexus.proxy.targets.DefaultTargetRegistryEventInspector" />
+    <include within="org.sonatype.nexus.rest.repotargets.AbstractRepositoryTargetPlexusResource" />
+  </weaver>
+
+</aspectj>

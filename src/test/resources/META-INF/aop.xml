@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<aspectj>
+
+  <weaver options="-verbose -showWeaveInfo">
+    <!-- org.sonatype.nexus.proxy.targets.Target related (tests) -->
+    <include within="org.talend.nexus.customizations.TargetMatchingOptimizationAspectTest" />
+  </weaver>
+
+</aspectj>

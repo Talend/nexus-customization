@@ -1,0 +1,61 @@
+= Nexus customizations
+:toc:
+
+== Installations
+
+TIP: the build produces a zip with the needed artifact, you can find it in `target` if you build locally
+or nexus if the project was released.
+
+1. Add `nexus-customization-${version}.jar` in the main classpath of Nexus
+2. Add `aspectjweaver-${aspectj.version}.jar` as javaagent in nexus wrapper configuration
+3. Restart Nexus
+
+=== Add customization jar in Nexus classpath
+
+This can be done dropping it in Nexus `lib` folder or - better - customizing `bin/jsw/conf/wrapper.conf`.
+Typically you will add a classpath line (take care to the last number which must not be duplicated):
+
+[source,properties]
+----
+wrapper.java.classpath.4 = /opt/talend/nexus-customization/nexus-customization-${version}.jar
+----
+
+=== Aspectjweaver setup
+
+The weaver is the one responsible to instrument the classes at runtime (when laoded by the classloader, which is generally when used the first time).
+It must be set on the JVM. Here again we can use `bin/jsw/conf/wrapper.conf` and add it in additional JVM parameters:
+
+[source,properties]
+----
+wrapper.java.additional.6 = /opt/talend/nexus-customization/aspectjweaver-${aspectj.version}.jar
+----
+
+== Customizations
+
+=== `nexus-indexer-lucene-plugin`
+
+Allow to search multiple artifacts at once.
+
+See `org.talend.nexus.customizations.DefaultIndexerManagerAspect`.
+
+=== `nexus-core`
+
+==== `Target`
+
+Allow to optimize the filtering done by the `Target` replacing regexes compilation for each request (we have numerous targets so it costs too much).
+
+See `org.talend.nexus.customizations.TargetMatchingOptimizationAspect`.
+
+==== `M2GavCalculator`
+
+For each artifact the gav calculator is used to compute the corresponding path for an artifact,
+Nexus default implementation uses a `replaceAll` to replace the dots by slashes which uses a regex for nothing
+so we fix that as well.
+
+See `org.talend.nexus.customizations.M2GavCalculatorAspect`.
+
+=== `nexus-bootstrap`
+
+Allow to monitor the jetty thread pool queue (a.k.a. jobs) through JMX.
+
+See `org.talend.nexus.customizations.JettyThreadPoolMonitoringAspect`.
