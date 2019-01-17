@@ -27,7 +27,6 @@ import org.apache.maven.index.ArtifactInfo;
 import org.apache.maven.index.IndexerField;
 import org.apache.maven.index.artifact.Gav;
 import org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

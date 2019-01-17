@@ -27,7 +27,7 @@ It must be set on the JVM. Here again we can use `bin/jsw/conf/wrapper.conf` and
 
 [source,properties]
 ----
-wrapper.java.additional.6 = /opt/talend/nexus-customization/aspectjweaver-${aspectj.version}.jar
+wrapper.java.additional.6 = -javaagent:/opt/talend/nexus-customization/aspectjweaver-${aspectj.version}.jar
 ----
 
 == Customizations
@@ -38,19 +38,19 @@ wrapper.java.additional.6 = /opt/talend/nexus-customization/aspectjweaver-${aspe
 
 Allow to search multiple artifacts at once.
 
-See `org.talend.nexus.customizations.DefaultIndexerManagerAspect`.
+See `org.talend.nexus.customizations.osgi.DefaultIndexerManagerAspect`.
 
 === Indexation enhancement (`indexer-core`)
 
 We add `license`, `licenseUrl` and `url` fields in the index.
 
-See `org.talend.nexus.customizations.MinimalArtifactInfoIndexCreatorAspect`.
+See `org.talend.nexus.customizations.osgi.MinimalArtifactInfoIndexCreatorAspect`.
 
 === Index representation enhancement (``)
 
 Enriches the response (payload) with `license`, `licenseUrl` and `url` attributes.
 
-See `org.talend.nexus.customizations.SearchNGIndexPlexusResourceAspect`.
+See `org.talend.nexus.customizations.osgi.SearchNGIndexPlexusResourceAspect`.
 
 === `nexus-core`
 
@@ -73,3 +73,9 @@ See `org.talend.nexus.customizations.M2GavCalculatorAspect`.
 Allow to monitor the jetty thread pool queue (a.k.a. jobs) through JMX.
 
 See `org.talend.nexus.customizations.JettyThreadPoolMonitoringAspect`.
+
+=== Felix And Jetty
+
+We ensure all the aspects work in Jetty and Nexus plugins (i.e. OSGi - Felix).
+
+See `org.talend.nexus.customizations.FelixAspect`.

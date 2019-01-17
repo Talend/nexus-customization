@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.talend.nexus.customizations;
+package org.talend.nexus.customizations.osgi;
 
 import static java.util.Arrays.asList;
 
@@ -37,8 +37,6 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.sonatype.nexus.index.DefaultIndexerManager;
 import org.sonatype.nexus.proxy.NoSuchRepositoryException;
-
-import com.google.common.base.Strings;
 
 @Aspect
 public class DefaultIndexerManagerAspect {
@@ -98,7 +96,7 @@ public class DefaultIndexerManagerAspect {
         }
         if (cTerm != null) {
             if (Field.NOT_PRESENT.equalsIgnoreCase(cTerm)) {
-                filters.add(0, (ctx, ai) -> Strings.isNullOrEmpty(ai.classifier));
+                filters.add(0, (ctx, ai) -> ai.classifier == null || ai.classifier.isEmpty());
             }
             else {
                 bq.add(manager.constructQuery(MAVEN.CLASSIFIER, cTerm, searchType), BooleanClause.Occur.MUST);

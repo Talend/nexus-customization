@@ -5,12 +5,13 @@
     <aspect name="org.talend.nexus.customizations.JettyThreadPoolMonitoringAspect"/>
     <aspect name="org.talend.nexus.customizations.TargetMatchingOptimizationAspect"/>
     <aspect name="org.talend.nexus.customizations.M2GavCalculatorAspect"/>
-    <aspect name="org.talend.nexus.customizations.SearchNGIndexPlexusResourceAspect"/>
-    <aspect name="org.talend.nexus.customizations.DefaultIndexerManagerAspect"/>
-    <aspect name="org.talend.nexus.customizations.MinimalArtifactInfoIndexCreatorAspect"/>
+    <aspect name="org.talend.nexus.customizations.FelixAspect"/>
+    <aspect name="org.talend.nexus.customizations.osgi.SearchNGIndexPlexusResourceAspect"/>
+    <aspect name="org.talend.nexus.customizations.osgi.DefaultIndexerManagerAspect"/>
+    <aspect name="org.talend.nexus.customizations.osgi.MinimalArtifactInfoIndexCreatorAspect"/>
   </aspects>
 
-  <weaver options="-showWeaveInfo">
+  <weaver options="-showWeaveInfo -Xset:weaveJavaxPackages=false">
     <!-- directly instrumented -->
     <include within="com.yammer.metrics.jetty.InstrumentedQueuedThreadPool"/>
     <include within="org.sonatype.nexus.proxy.maven.gav.M2GavCalculator"/>
@@ -18,6 +19,9 @@
     <include within="org.apache.maven.index.DefaultSearchEngine"/> <!-- to cache the result iterator -->
     <include within="org.sonatype.nexus.index.DefaultIndexerManager"/>
     <include within="org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator"/>
+    <include within="org.eclipse.jetty.webapp.WebAppClassLoader"/>
+    <include within="org.apache.felix.framework.Felix"/>
+    <include within="org.apache.felix.framework.BundleRevisionImpl"/>
 
     <!-- org.sonatype.nexus.proxy.targets.Target related -->
     <include within="org.sonatype.nexus.proxy.targets.DefaultTargetRegistry" />

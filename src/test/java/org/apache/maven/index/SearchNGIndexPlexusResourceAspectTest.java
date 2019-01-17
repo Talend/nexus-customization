@@ -51,8 +51,8 @@ import org.sonatype.nexus.rest.indexng.SearchNGIndexPlexusResource;
 import org.sonatype.nexus.rest.model.SearchNGResponse;
 import org.sonatype.sisu.goodies.eventbus.internal.DefaultEventBus;
 import org.sonatype.sisu.goodies.eventbus.internal.ReentrantGuavaEventBus;
-import org.talend.nexus.customizations.MinimalArtifactInfoIndexCreatorAspect;
-import org.talend.nexus.customizations.SearchNGIndexPlexusResourceAspect;
+import org.talend.nexus.customizations.osgi.MinimalArtifactInfoIndexCreatorAspect;
+import org.talend.nexus.customizations.osgi.SearchNGIndexPlexusResourceAspect;
 
 @DisplayName("Ensure responses of the search are enriched with custom fields")
 class SearchNGIndexPlexusResourceAspectTest {
@@ -108,9 +108,9 @@ class SearchNGIndexPlexusResourceAspectTest {
         document.add(MinimalArtifactInfoIndexCreator.FLD_ARTIFACT_ID.toField(artifact));
         document.add(MinimalArtifactInfoIndexCreator.FLD_VERSION.toField("1.2.3"));
         document.add(MinimalArtifactInfoIndexCreator.FLD_PACKAGING.toField("jar"));
-        document.add(MinimalArtifactInfoIndexCreatorAspect.FLD_URL_ID.toField("http://fake"));
-        document.add(MinimalArtifactInfoIndexCreatorAspect.FLD_LICENSE_URL_ID.toField("http://" + artifact));
-        document.add(MinimalArtifactInfoIndexCreatorAspect.FLD_LICENSE_ID.toField(artifact + " license"));
+        document.add(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_URL_ID.toField("http://fake"));
+        document.add(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_LICENSE_URL_ID.toField("http://" + artifact));
+        document.add(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_LICENSE_ID.toField(artifact + " license"));
         return document;
     }
 }

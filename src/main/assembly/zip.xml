@@ -11,7 +11,6 @@
   <fileSets>
     <fileSet>
       <directory>${project.build.directory}</directory>
-      <outputDirectory>/</outputDirectory>
       <includes>
         <include>${project.build.finalName}.jar</include>
       </includes>
