@@ -34,9 +34,23 @@ wrapper.java.additional.6 = /opt/talend/nexus-customization/aspectjweaver-${aspe
 
 === `nexus-indexer-lucene-plugin`
 
+=== Search enhancement
+
 Allow to search multiple artifacts at once.
 
 See `org.talend.nexus.customizations.DefaultIndexerManagerAspect`.
+
+=== Indexation enhancement (`indexer-core`)
+
+We add `license`, `licenseUrl` and `url` fields in the index.
+
+See `org.talend.nexus.customizations.MinimalArtifactInfoIndexCreatorAspect`.
+
+=== Index representation enhancement (``)
+
+Enriches the response (payload) with `license`, `licenseUrl` and `url` attributes.
+
+See `org.talend.nexus.customizations.SearchNGIndexPlexusResourceAspect`.
 
 === `nexus-core`
 

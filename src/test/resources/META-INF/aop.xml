@@ -4,6 +4,8 @@
   <weaver options="-verbose -showWeaveInfo">
     <!-- org.sonatype.nexus.proxy.targets.Target related (tests) -->
     <include within="org.talend.nexus.customizations.TargetMatchingOptimizationAspectTest" />
+    <!-- result set iterator (tests) -->
+    <include within="org.apache.maven.index.SearchNGIndexPlexusResourceAspectTest.*" />
   </weaver>
 
 </aspectj>

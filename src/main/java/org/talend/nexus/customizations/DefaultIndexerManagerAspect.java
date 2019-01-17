@@ -81,7 +81,7 @@ public class DefaultIndexerManagerAspect {
         if (aTerm != null) { // Talend: default is the same as for gTerm but we need to support multiple values
             final Set<String> artifactIds = new HashSet<>(asList(aTerm.split(",")));
             if (artifactIds.size() > 1) {
-                BooleanQuery aq = new BooleanQuery();
+                final BooleanQuery aq = new BooleanQuery();
                 for (final String it : artifactIds) {
                     aq.add(manager.constructQuery(MAVEN.ARTIFACT_ID, it, searchType), BooleanClause.Occur.SHOULD);
                 }

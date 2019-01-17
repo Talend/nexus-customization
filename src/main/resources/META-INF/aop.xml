@@ -3,16 +3,21 @@
 
   <aspects>
     <aspect name="org.talend.nexus.customizations.JettyThreadPoolMonitoringAspect"/>
-    <aspect name="org.talend.nexus.customizations.DefaultIndexerManagerAspect"/>
     <aspect name="org.talend.nexus.customizations.TargetMatchingOptimizationAspect"/>
     <aspect name="org.talend.nexus.customizations.M2GavCalculatorAspect"/>
+    <aspect name="org.talend.nexus.customizations.SearchNGIndexPlexusResourceAspect"/>
+    <aspect name="org.talend.nexus.customizations.DefaultIndexerManagerAspect"/>
+    <aspect name="org.talend.nexus.customizations.MinimalArtifactInfoIndexCreatorAspect"/>
   </aspects>
 
   <weaver options="-showWeaveInfo">
     <!-- directly instrumented -->
     <include within="com.yammer.metrics.jetty.InstrumentedQueuedThreadPool"/>
-    <include within="org.sonatype.nexus.index.DefaultIndexerManager"/>
     <include within="org.sonatype.nexus.proxy.maven.gav.M2GavCalculator"/>
+    <include within="org.sonatype.nexus.rest.indexng.SearchNGIndexPlexusResource"/>
+    <include within="org.apache.maven.index.DefaultSearchEngine"/> <!-- to cache the result iterator -->
+    <include within="org.sonatype.nexus.index.DefaultIndexerManager"/>
+    <include within="org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator"/>
 
     <!-- org.sonatype.nexus.proxy.targets.Target related -->
     <include within="org.sonatype.nexus.proxy.targets.DefaultTargetRegistry" />
