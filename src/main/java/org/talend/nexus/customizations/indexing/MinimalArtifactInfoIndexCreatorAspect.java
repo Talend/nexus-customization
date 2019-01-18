@@ -13,36 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.talend.nexus.customizations.osgi;
-
-import static java.util.Optional.ofNullable;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_ARTIFACT_ID;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_ARTIFACT_ID_KW;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_CLASSIFIER;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_DESCRIPTION;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_GROUP_ID;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_GROUP_ID_KW;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_INFO;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_LAST_MODIFIED;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_NAME;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_PACKAGING;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_SHA1;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_VERSION;
-import static org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.FLD_VERSION_KW;
+package org.talend.nexus.customizations.indexing;
 
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.apache.lucene.document.Document;
 import org.apache.maven.index.ArtifactContext;
 import org.apache.maven.index.ArtifactInfo;
-import org.apache.maven.index.Field;
-import org.apache.maven.index.IndexerField;
-import org.apache.maven.index.IndexerFieldVersion;
 import org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator;
 import org.apache.maven.index.util.zip.ZipFacade;
 import org.apache.maven.index.util.zip.ZipHandle;
@@ -56,20 +36,9 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 @Aspect
 public class MinimalArtifactInfoIndexCreatorAspect {
-    public interface Constants {
-        IndexerField FLD_URL_ID = new IndexerField(
-                new Field(null, "urn:talend#", "url", "Artifact Url"), IndexerFieldVersion.V3, "url",
-                "Artifact url (tokenized)", org.apache.lucene.document.Field.Store.YES,
-                org.apache.lucene.document.Field.Index.ANALYZED);
-
-        IndexerField FLD_LICENSE_ID = new IndexerField(
-                new Field(null, "urn:talend#", "license", "Artifact License"), IndexerFieldVersion.V3, "license",
-                "Artifact License (tokenized)", org.apache.lucene.document.Field.Store.YES,
-                org.apache.lucene.document.Field.Index.ANALYZED);
-
-        IndexerField FLD_LICENSE_URL_ID = new IndexerField(new Field(null, "urn:talend#", "licenseUrl", "License Url"), IndexerFieldVersion.V3, "licenseUrl",
-                "License Url (tokenized)", org.apache.lucene.document.Field.Store.YES,
-                org.apache.lucene.document.Field.Index.ANALYZED);
+    @AfterReturning(value = "execution(org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.new()) && this(creator)", argNames = "creator")
+    public void create(final MinimalArtifactInfoIndexCreator creator) {
+        LoadedByReflection.init(creator.getClass().getClassLoader());
     }
 
     @AfterReturning(value = "execution(void org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.updateDocument(org.apache.maven.index.ArtifactInfo,org.apache.lucene.document.Document)) && args(artifactInfo,document)")
@@ -82,13 +51,9 @@ public class MinimalArtifactInfoIndexCreatorAspect {
         talendUpdateDocument(artifactInfo, document);
     }
 
-    @Around(value = "execution(java.util.Collection org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.getIndexerFields()) && this(creator)")
-    public Collection<IndexerField> getIndexerFields(final MinimalArtifactInfoIndexCreator creator) {
-        return withClassLoader(creator, () -> Arrays.asList( FLD_INFO, FLD_GROUP_ID_KW, FLD_GROUP_ID, FLD_ARTIFACT_ID_KW, FLD_ARTIFACT_ID,
-                FLD_VERSION_KW, FLD_VERSION, FLD_PACKAGING, FLD_CLASSIFIER, FLD_NAME, FLD_DESCRIPTION, FLD_LAST_MODIFIED,
-                FLD_SHA1,
-                // additions
-                Constants.FLD_LICENSE_ID, Constants.FLD_LICENSE_URL_ID, Constants.FLD_URL_ID));
+    @Around(value = "execution(java.util.Collection org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.getIndexerFields())")
+    public Collection<?> getIndexerFields() {
+        return Collection.class.cast(LoadedByReflection.INDEXER_FIELDS);
     }
 
     @AfterReturning(value = "execution(void org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.populateArtifactInfo(org.apache.maven.index.ArtifactContext)) && args(artifactContext)", argNames = "artifactContext")
@@ -101,46 +66,24 @@ public class MinimalArtifactInfoIndexCreatorAspect {
 
     @AfterReturning(value = "execution(boolean org.apache.maven.index.creator.MinimalArtifactInfoIndexCreator.updateArtifactInfo(org.apache.lucene.document.Document,org.apache.maven.index.ArtifactInfo)) && args(document,artifactInfo)", argNames = "document,artifactInfo")
     public void updateArtifactInfo(final Document document, final ArtifactInfo artifactInfo) {
-        final String urlInfo = document.get(Constants.FLD_URL_ID.getKey());
-        if (urlInfo != null) {
-            artifactInfo.getAttributes().put(Constants.FLD_URL_ID.getKey(), urlInfo);
-        }
-
-        final String liInfo = document.get(Constants.FLD_LICENSE_ID.getKey());
-        if (liInfo != null) {
-            artifactInfo.getAttributes().put(Constants.FLD_LICENSE_ID.getKey(), liInfo);
-        }
-
-        final String liUrlInfo = document.get(Constants.FLD_LICENSE_URL_ID.getKey());
-        if (liUrlInfo != null) {
-            artifactInfo.getAttributes().put(Constants.FLD_LICENSE_URL_ID.getKey(), liUrlInfo);
-        }
-    }
-
-    private <T> T withClassLoader(final MinimalArtifactInfoIndexCreator creator, final Supplier<T> o) {
-        final Thread thread = Thread.currentThread();
-        final ClassLoader oldLoader = thread.getContextClassLoader();
-        thread.setContextClassLoader(ofNullable(creator.getClass().getClassLoader()).orElseGet(thread::getContextClassLoader));
-        try {
-            return o.get();
-        } finally {
-            thread.setContextClassLoader(oldLoader);
-        }
+        LoadedByReflection.set(LoadedByReflection.FLD_URL_ID, document, artifactInfo);
+        LoadedByReflection.set(LoadedByReflection.FLD_LICENSE_ID, document, artifactInfo);
+        LoadedByReflection.set(LoadedByReflection.FLD_LICENSE_URL_ID, document, artifactInfo);
     }
 
     private void talendUpdateDocument(final ArtifactInfo artifactInfo, final Document document) {
-        final String url = artifactInfo.getAttributes().get(Constants.FLD_URL_ID.getKey());
+        final String url = artifactInfo.getAttributes().get("url");
         if (url != null) {
-            document.add(Constants.FLD_URL_ID.toField(url));
+            LoadedByReflection.addField(document, LoadedByReflection.FLD_URL_ID, url);
         }
-        final String license = artifactInfo.getAttributes().get(Constants.FLD_LICENSE_ID.getKey());
+        final String license = artifactInfo.getAttributes().get("license");
         if (license != null) {
-            document.add(Constants.FLD_LICENSE_ID.toField(license));
+            LoadedByReflection.addField(document, LoadedByReflection.FLD_LICENSE_ID, license);
         }
 
-        final String licenseUrl = artifactInfo.getAttributes().get(Constants.FLD_LICENSE_URL_ID.getKey());
+        final String licenseUrl = artifactInfo.getAttributes().get("licenseUrl");
         if (licenseUrl != null) {
-            document.add(Constants.FLD_LICENSE_URL_ID.toField(licenseUrl));
+            LoadedByReflection.addField(document, LoadedByReflection.FLD_LICENSE_URL_ID, licenseUrl);
         }
     }
 
@@ -184,16 +127,16 @@ public class MinimalArtifactInfoIndexCreatorAspect {
 
     private void addTalendFields(final Model model, final ArtifactInfo info) {
         if (model.getUrl() != null) {
-            info.getAttributes().put(Constants.FLD_URL_ID.getKey(), model.getUrl());
+            info.getAttributes().put("url", model.getUrl());
         }
         final List<License> licenses = model.getLicenses();
         if (!licenses.isEmpty()) {
             final License license = licenses.get(0);
             if (license.getName() != null) {
-                info.getAttributes().put(Constants.FLD_LICENSE_ID.getKey(), license.getName());
+                info.getAttributes().put("license", license.getName());
             }
             if (license.getUrl() != null) {
-                info.getAttributes().put(Constants.FLD_LICENSE_URL_ID.getKey(), license.getUrl());
+                info.getAttributes().put("licenseUrl", license.getUrl());
             }
         }
     }

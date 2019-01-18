@@ -23,6 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.sonatype.nexus.proxy.maven.maven2.Maven2ContentClass;
 import org.sonatype.nexus.proxy.targets.Target;
+import org.talend.nexus.customizations.core.TargetMatchingOptimizationAspect;
 
 @DisplayName("Target uses regexes and we have too much rules to use that at runtime")
 class TargetMatchingOptimizationAspectTest {

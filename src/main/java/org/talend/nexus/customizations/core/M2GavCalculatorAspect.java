@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.talend.nexus.customizations;
+package org.talend.nexus.customizations.core;
 
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;

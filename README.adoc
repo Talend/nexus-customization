@@ -38,19 +38,19 @@ wrapper.java.additional.6 = -javaagent:/opt/talend/nexus-customization/aspectjwe
 
 Allow to search multiple artifacts at once.
 
-See `org.talend.nexus.customizations.osgi.DefaultIndexerManagerAspect`.
+See `org.talend.nexus.customizations.indexing.DefaultIndexerManagerAspect`.
 
 === Indexation enhancement (`indexer-core`)
 
 We add `license`, `licenseUrl` and `url` fields in the index.
 
-See `org.talend.nexus.customizations.osgi.MinimalArtifactInfoIndexCreatorAspect`.
+See `org.talend.nexus.customizations.indexing.MinimalArtifactInfoIndexCreatorAspect`.
 
 === Index representation enhancement (``)
 
 Enriches the response (payload) with `license`, `licenseUrl` and `url` attributes.
 
-See `org.talend.nexus.customizations.osgi.SearchNGIndexPlexusResourceAspect`.
+See `org.talend.nexus.customizations.indexing.SearchNGIndexPlexusResourceAspect`.
 
 === `nexus-core`
 
@@ -58,7 +58,7 @@ See `org.talend.nexus.customizations.osgi.SearchNGIndexPlexusResourceAspect`.
 
 Allow to optimize the filtering done by the `Target` replacing regexes compilation for each request (we have numerous targets so it costs too much).
 
-See `org.talend.nexus.customizations.TargetMatchingOptimizationAspect`.
+See `org.talend.nexus.customizations.core.TargetMatchingOptimizationAspect`.
 
 ==== `M2GavCalculator`
 
@@ -66,16 +66,23 @@ For each artifact the gav calculator is used to compute the corresponding path f
 Nexus default implementation uses a `replaceAll` to replace the dots by slashes which uses a regex for nothing
 so we fix that as well.
 
-See `org.talend.nexus.customizations.M2GavCalculatorAspect`.
+See `org.talend.nexus.customizations.core.M2GavCalculatorAspect`.
 
 === `nexus-bootstrap`
 
 Allow to monitor the jetty thread pool queue (a.k.a. jobs) through JMX.
 
-See `org.talend.nexus.customizations.JettyThreadPoolMonitoringAspect`.
+See `org.talend.nexus.customizations.jetty.JettyThreadPoolMonitoringAspect`.
 
 === Felix And Jetty
 
 We ensure all the aspects work in Jetty and Nexus plugins (i.e. OSGi - Felix).
 
-See `org.talend.nexus.customizations.FelixAspect`.
+See `org.talend.nexus.customizations.ClassLoaderSetupAspect`.
+
+
+
+TODO:
+
+1. instrument org.sonatype.nexus.plugins.repository.PluginRepositoryArtifact.getPluginMetadata to add customization jar in plugins
+2. org.sonatype.nexus.plugins.repository.DefaultPluginRepositoryManager.resolveDependencyArtifact to resolve 1. or org.sonatype.nexus.plugins.DefaultNexusPluginManager.createPluginInjector

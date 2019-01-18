@@ -23,21 +23,19 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Paths;
 import java.util.Map;
 
-import org.apache.felix.framework.Felix;
 import org.apache.felix.framework.cache.Content;
-import org.aspectj.lang.Aspects;
+import org.apache.felix.framework.cache.DirectoryContent;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.eclipse.jetty.webapp.WebAppClassLoader;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleException;
 
 @Aspect
-public class FelixAspect {
+public class ClassLoaderSetupAspect {
     @AfterReturning(value = "execution(org.eclipse.jetty.webapp.WebAppClassLoader.new(java.lang.ClassLoader,org.eclipse.jetty.webapp.WebAppClassLoader$Context)) && this(loader)", argNames = "loader")
     public void addInWebApp(final WebAppClassLoader loader) {
         try {
@@ -53,44 +51,38 @@ public class FelixAspect {
     }
 
     @Before(value = "execution(org.apache.felix.framework.BundleRevisionImpl.new(org.osgi.framework.Bundle,java.lang.String,java.util.Map,org.apache.felix.framework.cache.Content)) && args(bundle,id,headers,content)", argNames = "bundle,id,headers,content")
-    public void addAspectjManifestEntries(final Bundle bundle, final String id, final Map headers, final Content content) {
-        if (!"org.aspectj.weaver.loadtime.Agent".equals(headers.get("Agent-Class"))) { // this not aspectj
-            return;
+    public void addManifestEntries(final Bundle bundle, final String id, final Map headers, final Content content) {
+        if ("org.aspectj.weaver.loadtime.Agent".equals(headers.get("Agent-Class"))) { // this is aspectj, add missing meta
+            headers.putIfAbsent("Bundle-Version", "1.0");
+            headers.putIfAbsent("Export-Package", "org.aspectj.apache.bcel,org.aspectj.apache.bcel.generic,org.aspectj.apache.bcel.util," +
+                    "org.aspectj.asm,org.aspectj.asm.internal,org.aspectj.bridge,org.aspectj.bridge.context," +
+                    "org.aspectj.internal.lang.annotation,org.aspectj.internal.lang.reflect,org.aspectj.lang," +
+                    "org.aspectj.lang.annotation,org.aspectj.lang.annotation.control,org.aspectj.lang.internal.lang," +
+                    "org.aspectj.lang.reflect,org.aspectj.runtime,org.aspectj.runtime.internal,org.aspectj.runtime.internal.cflowstack," +
+                    "org.aspectj.runtime.reflect,org.aspectj.util,org.aspectj.weaver,org.aspectj.weaver.ast,org.aspectj.weaver.bcel," +
+                    "org.aspectj.weaver.bcel.asm,org.aspectj.weaver.internal.tools,org.aspectj.weaver.loadtime,org.aspectj.weaver.loadtime.definition," +
+                    "org.aspectj.weaver.ltw,org.aspectj.weaver.model,org.aspectj.weaver.patterns,org.aspectj.weaver.reflect," +
+                    "org.aspectj.weaver.tools,org.aspectj.weaver.tools.cache,aj.org.objectweb.asm,aj.org.objectweb.asm.signature");
+        } else if ("org.sonatype.nexus.plugins.nexus-indexer-lucene-plugin".equals(headers.get("Bundle-SymbolicName"))) {
+            // add the agent in the classpath to lucene plugin to let aspectj instrument the classes
+            // (also see Activator which has a whitelisting too)
+            final Object classpath = headers.get("Bundle-ClassPath");
+            if (classpath != null) {
+                final String bundleBase = DirectoryContent.class.cast(content).toString().substring("DIRECTORY ".length());
+                final String newCp = classpath + "," + Paths.get(bundleBase).relativize(getCustomizations().toPath().toAbsolutePath());
+                headers.put("Bundle-ClassPath", newCp);
+            } // todo: else unexpected, fail?
         }
-        headers.putIfAbsent("Bundle-Version", "1.0");
-        headers.putIfAbsent("Export-Package", "org.aspectj.apache.bcel,org.aspectj.apache.bcel.generic,org.aspectj.apache.bcel.util," +
-                "org.aspectj.asm,org.aspectj.asm.internal,org.aspectj.bridge,org.aspectj.bridge.context," +
-                "org.aspectj.internal.lang.annotation,org.aspectj.internal.lang.reflect,org.aspectj.lang," +
-                "org.aspectj.lang.annotation,org.aspectj.lang.annotation.control,org.aspectj.lang.internal.lang," +
-                "org.aspectj.lang.reflect,org.aspectj.runtime,org.aspectj.runtime.internal,org.aspectj.runtime.internal.cflowstack," +
-                "org.aspectj.runtime.reflect,org.aspectj.util,org.aspectj.weaver,org.aspectj.weaver.ast,org.aspectj.weaver.bcel," +
-                "org.aspectj.weaver.bcel.asm,org.aspectj.weaver.internal.tools,org.aspectj.weaver.loadtime,org.aspectj.weaver.loadtime.definition," +
-                "org.aspectj.weaver.ltw,org.aspectj.weaver.model,org.aspectj.weaver.patterns,org.aspectj.weaver.reflect," +
-                "org.aspectj.weaver.tools,org.aspectj.weaver.tools.cache,orgobjectweb.asm,orgobjectweb.asm.signature");
-    }
-
-    @AfterReturning(value = "execution(void org.apache.felix.framework.Felix.start(..)) && this(felix)", argNames = "felix")
-    public void addAspectsInFelix(final Felix felix) throws BundleException {
-        final File customizations = getCustomizations();
-        final File aspectj = requireNonNull(jarLocation(Aspects.class), "Didn't find aspectj");
-        final BundleContext context = felix.getBundleContext();
-        context.installBundle("reference:" + aspectj.toURI()).start();
-        context.installBundle("reference:" + customizations.toURI()).start();
-    }
-
-    private String getAspectjManifest() {
-        return "";
     }
 
     private File getCustomizations() {
-        return requireNonNull(jarLocation(FelixAspect.class), "Didn't find nexus-customizations");
+        return requireNonNull(jarLocation(ClassLoaderSetupAspect.class), "Didn't find nexus-customizations");
     }
 
     private File jarLocation(final Class clazz) {
         try {
             final String classFileName = clazz.getName().replace(".", "/") + ".class";
-            final ClassLoader loader = clazz.getClassLoader();
-            return jarFromResource(loader, classFileName);
+            return jarFromResource(clazz.getClassLoader(), classFileName);
         } catch (final RuntimeException e) {
             throw e;
         } catch (final Exception e) {

@@ -24,7 +24,6 @@
   <artifactId>nexus-customization</artifactId>
   <version>1.0.0-SNAPSHOT</version>
   <name>Talend Nexus Customizations</name>
-  <packaging>bundle</packaging>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -116,28 +115,6 @@
 
   <build>
     <plugins>
-      <plugin>
-        <groupId>org.apache.felix</groupId>
-        <artifactId>maven-bundle-plugin</artifactId>
-        <version>4.1.0</version>
-        <extensions>true</extensions>
-        <configuration>
-          <instructions>
-            <Private-Package>org.talend.nexus.customizations.*</Private-Package>
-            <Import-Package>
-              org.osgi.*,
-              org.aspectj.weaver.*,
-              org.apache.lucene.*;resolution:=optional,
-              org.apache.lucene.document.*;resolution:=optional,
-              org.apache.maven.*;resolution:=optional,
-              org.sonatype.*;resolution:=optional,
-              javax.xml.bind.annotation.*;resolution:=optional
-            </Import-Package>
-            <Export-Package>org.talend.nexus.customizations.osgi.*</Export-Package>
-            <Bundle-Activator>org.talend.nexus.customizations.osgi.Activator</Bundle-Activator>
-          </instructions>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>

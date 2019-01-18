@@ -51,14 +51,16 @@ import org.sonatype.nexus.rest.indexng.SearchNGIndexPlexusResource;
 import org.sonatype.nexus.rest.model.SearchNGResponse;
 import org.sonatype.sisu.goodies.eventbus.internal.DefaultEventBus;
 import org.sonatype.sisu.goodies.eventbus.internal.ReentrantGuavaEventBus;
-import org.talend.nexus.customizations.osgi.MinimalArtifactInfoIndexCreatorAspect;
-import org.talend.nexus.customizations.osgi.SearchNGIndexPlexusResourceAspect;
+import org.talend.nexus.customizations.indexing.LoadedByReflection;
+import org.talend.nexus.customizations.indexing.SearchNGIndexPlexusResourceAspect;
 
 @DisplayName("Ensure responses of the search are enriched with custom fields")
 class SearchNGIndexPlexusResourceAspectTest {
     @Test
     @DisplayName("Search and validates we have license/licenseUrl/url")
     void search() throws IOException {
+        LoadedByReflection.init(Thread.currentThread().getContextClassLoader());
+
         final List<IndexingContext> contexts = singletonList(new NexusIndexingContext(
                 "test", "test", new File("target/repo"), new RAMDirectory(), null, null,
                 singletonList(new MinimalArtifactInfoIndexCreator()), false, false));
@@ -108,9 +110,9 @@ class SearchNGIndexPlexusResourceAspectTest {
         document.add(MinimalArtifactInfoIndexCreator.FLD_ARTIFACT_ID.toField(artifact));
         document.add(MinimalArtifactInfoIndexCreator.FLD_VERSION.toField("1.2.3"));
         document.add(MinimalArtifactInfoIndexCreator.FLD_PACKAGING.toField("jar"));
-        document.add(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_URL_ID.toField("http://fake"));
-        document.add(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_LICENSE_URL_ID.toField("http://" + artifact));
-        document.add(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_LICENSE_ID.toField(artifact + " license"));
+        document.add(IndexerField.class.cast(LoadedByReflection.FLD_URL_ID).toField("http://fake"));
+        document.add(IndexerField.class.cast(LoadedByReflection.FLD_LICENSE_URL_ID).toField("http://" + artifact));
+        document.add(IndexerField.class.cast(LoadedByReflection.FLD_LICENSE_ID).toField(artifact + " license"));
         return document;
     }
 }

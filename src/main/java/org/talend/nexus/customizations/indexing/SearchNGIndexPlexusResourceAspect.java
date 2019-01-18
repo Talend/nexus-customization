@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.talend.nexus.customizations.osgi;
+package org.talend.nexus.customizations.indexing;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -71,9 +71,9 @@ public class SearchNGIndexPlexusResourceAspect {
                         .filter(art -> matches(art, it))
                         .map(ExtendedNexusNGArtifact.class::cast)
                         .forEach(model -> {
-                            model.setUrl(it.getAttributes().get(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_URL_ID.getKey()));
-                            model.setLicense(it.getAttributes().get(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_LICENSE_ID.getKey()));
-                            model.setLicenseUrl(it.getAttributes().get(MinimalArtifactInfoIndexCreatorAspect.Constants.FLD_LICENSE_URL_ID.getKey()));
+                            model.setUrl(it.getAttributes().get("url"));
+                            model.setLicense(it.getAttributes().get("license"));
+                            model.setLicenseUrl(it.getAttributes().get("licenseUrl"));
                         });
             });
         }
